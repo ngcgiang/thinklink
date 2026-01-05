@@ -1,0 +1,115 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle2, Target } from 'lucide-react';
+import InteractiveProblemText from './InteractiveProblemText';
+import CascadingGraph from './CascadingGraph';
+
+const ProblemVisualizer = ({ analysisData, problemText }) => {
+  const [activeNodeId, setActiveNodeId] = useState(null);
+
+  const handleNodeClick = (nodeId) => {
+    setActiveNodeId(activeNodeId === nodeId ? null : nodeId);
+  };
+
+  const handleTextClick = (nodeId) => {
+    setActiveNodeId(activeNodeId === nodeId ? null : nodeId);
+    
+    // Scroll to the corresponding node
+    const nodeElement = document.querySelector(`[data-node-id="${nodeId}"]`);
+    if (nodeElement) {
+      nodeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+      className="space-y-6 max-w-7xl mx-auto"
+    >
+      {/* Summary Section */}
+      {analysisData.summary && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-md p-6 border border-blue-200"
+        >
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-blue-500 rounded-lg">
+              <Target className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-gray-800 mb-2">Tóm Tắt Bài Toán</h3>
+              <p className="text-gray-700 leading-relaxed">{analysisData.summary}</p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Unknowns Section */}
+      {analysisData.unknowns && analysisData.unknowns.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl shadow-md p-6 border border-amber-200"
+        >
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-orange-500 rounded-lg">
+              <CheckCircle2 className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-gray-800 mb-2">Cần Tìm</h3>
+              <ul className="list-disc list-inside space-y-1">
+                {analysisData.unknowns.map((unknown, idx) => (
+                  <li key={idx} className="text-gray-700">
+                    {unknown}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Main Visualization Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Area A: Interactive Problem Text */}
+        <div className="lg:col-span-1">
+          <InteractiveProblemText
+            problemText={problemText}
+            keyPoints={analysisData.key_points}
+            activeNodeId={activeNodeId}
+            onTextClick={handleTextClick}
+          />
+        </div>
+
+        {/* Area B: Cascading Graph */}
+        <div className="lg:col-span-1">
+          <CascadingGraph
+            keyPoints={analysisData.key_points}
+            activeNodeId={activeNodeId}
+            onNodeClick={handleNodeClick}
+          />
+        </div>
+      </div>
+
+      {/* Instructions */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="bg-gray-100 rounded-lg p-4 text-center"
+      >
+        <p className="text-sm text-gray-600">
+          💡 <strong>Hướng dẫn:</strong> Click vào các phần được highlight trong đề bài hoặc các node phân tích 
+          để xem mối liên hệ giữa đề bài và quá trình suy luận
+        </p>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export default ProblemVisualizer;
