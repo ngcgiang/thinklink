@@ -4,8 +4,9 @@ import { FileText } from 'lucide-react';
 
 const InteractiveProblemText = ({ problemText, keyPoints, activeNodeId, onTextClick }) => {
   // Find all source texts that need to be highlighted
+  // Deduplicates when multiple nodes have the same source_text
   const highlightMap = useMemo(() => {
-    const map = [];
+    const textPositionMap = new Map(); // Track unique text positions
     
     keyPoints.forEach(point => {
       if (point.source_text && point.source_text.trim() !== '') {
@@ -13,18 +14,26 @@ const InteractiveProblemText = ({ problemText, keyPoints, activeNodeId, onTextCl
         const index = problemText.indexOf(sourceText);
         
         if (index !== -1) {
-          map.push({
-            id: point.id,
-            text: sourceText,
-            start: index,
-            end: index + sourceText.length
-          });
+          const key = `${index}-${sourceText}`; // Unique key for position + text
+          
+          if (!textPositionMap.has(key)) {
+            // First occurrence of this text at this position
+            textPositionMap.set(key, {
+              ids: [point.id], // Array to store all node IDs with same source_text
+              text: sourceText,
+              start: index,
+              end: index + sourceText.length
+            });
+          } else {
+            // Same text at same position - add this node ID to the list
+            textPositionMap.get(key).ids.push(point.id);
+          }
         }
       }
     });
     
-    // Sort by start position to handle overlaps
-    return map.sort((a, b) => a.start - b.start);
+    // Convert map to array and sort by start position
+    return Array.from(textPositionMap.values()).sort((a, b) => a.start - b.start);
   }, [problemText, keyPoints]);
 
   // Build the rendered text with highlights
@@ -50,8 +59,8 @@ const InteractiveProblemText = ({ problemText, keyPoints, activeNodeId, onTextCl
       segments.push({
         type: 'highlight',
         content: highlight.text,
-        id: highlight.id,
-        key: `highlight-${highlight.id}`
+        ids: highlight.ids, // Array of node IDs
+        key: `highlight-${highlight.ids.join('-')}`
       });
 
       lastIndex = highlight.end;
@@ -72,11 +81,12 @@ const InteractiveProblemText = ({ problemText, keyPoints, activeNodeId, onTextCl
           if (segment.type === 'text') {
             return <span key={segment.key}>{segment.content}</span>;
           } else {
-            const isActive = segment.id === activeNodeId;
+            // Check if any of the node IDs in this highlight is active
+            const isActive = segment.ids.some(id => id === activeNodeId);
             return (
               <motion.mark
                 key={segment.key}
-                onClick={() => onTextClick(segment.id)}
+                onClick={() => onTextClick(segment.ids[0])} // Click on first node ID
                 className={`
                   highlight-text
                   ${isActive ? 'highlight-text-active' : ''}
@@ -88,6 +98,7 @@ const InteractiveProblemText = ({ problemText, keyPoints, activeNodeId, onTextCl
                   boxShadow: isActive ? '0 0 20px rgba(251, 191, 36, 0.6)' : 'none'
                 }}
                 transition={{ duration: 0.2 }}
+                title={segment.ids.length > 1 ? `Liên kết với ${segment.ids.length} nodes` : ''}
               >
                 {segment.content}
               </motion.mark>

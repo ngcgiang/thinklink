@@ -25,7 +25,7 @@ const NodeDetailsSidebar = ({ node, isOpen, onClose }) => {
       case 2:
         return 'Phân tích suy luận';
       case 3:
-        return 'Kết luận';
+        return 'Dữ liệu ẩn';
       default:
         return 'Thông tin';
     }
@@ -78,22 +78,41 @@ const NodeDetailsSidebar = ({ node, isOpen, onClose }) => {
                 <span className="text-sm text-gray-500">ID: {node.id}</span>
               </div>
 
-              {/* Main Content */}
+              {/* Main Content - Symbol, Value, Unit */}
               <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-5 border border-blue-200">
-                <h4 className="text-sm font-medium text-gray-600 mb-2">Nội dung</h4>
-                <p className="text-xl font-bold text-gray-900">{node.content}</p>
+                <h4 className="text-sm font-medium text-gray-600 mb-3">Dữ liệu</h4>
+                <div className="space-y-2">
+                  {node.symbol && (
+                    <div>
+                      <span className="text-xs text-gray-500">Ký hiệu:</span>
+                      <p className="text-2xl font-bold text-gray-900 font-mono">{node.symbol}</p>
+                    </div>
+                  )}
+                  {node.value && (
+                    <div>
+                      <span className="text-xs text-gray-500">Giá trị:</span>
+                      <p className="text-xl font-semibold text-gray-800">{node.value}</p>
+                    </div>
+                  )}
+                  {node.unit && (
+                    <div>
+                      <span className="text-xs text-gray-500">Đơn vị:</span>
+                      <p className="text-base font-medium text-gray-700">{node.unit}</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* Explanation */}
-              {node.explanation && (
-                <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-lg p-5 border border-amber-200">
+              {/* Related Formula */}
+              {node.related_formula && (
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-5 border border-purple-200">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-amber-200 rounded-lg">
-                      <Lightbulb className="w-5 h-5 text-amber-700" />
+                    <div className="p-2 bg-purple-200 rounded-lg">
+                      <Lightbulb className="w-5 h-5 text-purple-700" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Giải thích</h4>
-                      <p className="text-gray-800 leading-relaxed">{node.explanation}</p>
+                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Công thức liên quan</h4>
+                      <code className="text-gray-800 bg-white px-3 py-2 rounded block">{node.related_formula}</code>
                     </div>
                   </div>
                 </div>
@@ -114,23 +133,6 @@ const NodeDetailsSidebar = ({ node, isOpen, onClose }) => {
                 </div>
               )}
 
-              {/* Parent Information */}
-              {node.parent_id !== null && (
-                <div className="bg-gray-50 rounded-lg p-5 border border-gray-200">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-gray-200 rounded-lg">
-                      <Info className="w-5 h-5 text-gray-700" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Mối liên hệ</h4>
-                      <p className="text-gray-700">
-                        Dữ kiện này được suy ra từ Node <span className="font-bold">#{node.parent_id}</span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {/* Additional Metadata */}
               <div className="border-t border-gray-200 pt-4">
                 <h4 className="text-xs font-semibold text-gray-500 uppercase mb-3">Thông tin bổ sung</h4>
@@ -146,9 +148,9 @@ const NodeDetailsSidebar = ({ node, isOpen, onClose }) => {
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Node cha:</span>
-                    <span className="text-sm font-medium text-gray-800">
-                      {node.parent_id !== null ? `#${node.parent_id}` : 'Không có (Node gốc)'}
+                    <span className="text-sm text-gray-600">ID Node:</span>
+                    <span className="text-sm font-medium text-gray-800 font-mono">
+                      {node.id}
                     </span>
                   </div>
                 </div>

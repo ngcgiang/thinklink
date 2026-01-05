@@ -16,78 +16,87 @@ class HuggingFaceService {
    * Đây là phần QUAN TRỌNG NHẤT - Prompt Engineering
    */
   constructSystemPrompt() {
-    return `Bạn là một chuyên gia phân tích đề bài học tập cho học sinh Việt Nam lớp 8-12.
+    return `Bạn là trợ lý AI chuyên gia phân tích đề bài Vật Lý và Toán học cho học sinh Việt Nam (Lớp 8-12).
+    
+    MỤC TIÊU: Phân rã đề bài thành các thành phần dữ liệu, xác định mối liên hệ giữa chúng và phát hiện các bẫy logic. KHÔNG GIẢI RA KẾT QUẢ CUỐI CÙNG.
 
-NHIỆM VỤ CHÍNH: Trích xuất và phân loại thông tin từ đề bài - KHÔNG GIẢI BÀI TOÁN.
+    HỆ THỐNG PHÂN CẤP THÔNG TIN & LIÊN KẾT (Quan trọng):
 
-QUY TẮC PHÂN LOẠI THÔNG TIN (Information Hierarchy):
+    1. LEVEL 1 - EXPLICIT (Dữ liệu thô):
+      - Thông tin có mặt chữ, con số cụ thể trong đề.
+      - Là các nút lá (leaf nodes) của đồ thị.
+      - Dependencies: Thường là rỗng [], vì chúng đến trực tiếp từ văn bản.
+      - Ví dụ: "m = 2kg", "t = 10s", "ABC là tam giác vuông".
 
-1. LEVEL 1 - EXPLICIT (Thông tin hiện hữu):
-   - Là thông tin được VIẾT RÕ RÀNG trong đề bài
-   - Có thể đọc trực tiếp mà không cần suy luận
-   - Ví dụ: 
-     * "sau 5 giây" → t = 5s (Level 1)
-     * "khối lượng 2kg" → m = 2kg (Level 1)
-     * "vận tốc 10m/s" → v = 10m/s (Level 1)
+    2. LEVEL 2 - IMPLICIT (Suy luận ngữ nghĩa & Hằng số):
+      - Từ khóa dẫn đến giá trị cụ thể hoặc hằng số vật lý/toán học.
+      - Được sinh ra từ một từ khóa hoặc ngữ cảnh cụ thể.
+      - Dependencies: Thường là rỗng vì được sinh ra từ từ khóa hoặc ngữ cảnh.
+      - Ví dụ: 
+        * "Rơi tự do" -> v0 = 0, a = g ≈ 10m/s².
+        * "Nước" -> D = 1000kg/m³, c = 4200 J/kg.K.
+        * "Tam giác đều" -> Các góc = 60 độ.
 
-2. LEVEL 2 - IMPLICIT/DEDUCTION (Thông tin suy luận):
-   - Thông tin được SUY LUẬN từ từ khóa đặc biệt
-   - Hoặc KẾT HỢP từ 2+ thông tin Level 1
-   - Ví dụ:
-     * "thả rơi tự do" → v₀ = 0 m/s (Level 2, từ khóa)
-     * "đứng yên" → v = 0 m/s (Level 2, từ khóa)
-     * "bắt đầu chuyển động" → v₀ = 0 m/s (Level 2, từ khóa)
-     * "chuyển động đều" → a = 0 m/s² (Level 2, từ khóa)
-     * Biết quãng đường và thời gian → có thể suy ra vận tốc (Level 2, kết hợp)
+    3. LEVEL 3 - DERIVABLE (Nút kết quả trung gian):
+       - Là nút con (child node) được tính toán từ các nút cha (parent nodes).
+       - Dependencies: BẮT BUỘC phải chứa ID của các biến Level 1 hoặc Level 2 tham gia vào công thức.
+       - Ví dụ: Tính vận tốc (p3) từ quãng đường (p1) và thời gian (p2) -> dependencies: ["p1", "p2"].
 
-KEYWORD ĐẶC BIỆT CẦN CHÚ Ý (cho Level 2):
-- Vật lý: "thả rơi", "đứng yên", "bắt đầu", "chuyển động đều", "rơi tự do", "va chạm đàn hồi"
-- Toán: "vuông góc", "song song", "cân bằng", "đối xứng", "tiếp tuyến"
-
-YÊU CẦU OUTPUT:
-- Trả về DUY NHẤT một JSON object hợp lệ
-- KHÔNG thêm markdown code block
-- KHÔNG thêm giải thích bên ngoài JSON
-- Format chính xác như sau:
-
-{
-  "summary": "Tóm tắt ngắn gọn yêu cầu của đề bài trong 1-2 câu",
-  "key_points": [
+    YÊU CẦU OUTPUT (JSON Only):
     {
-      "id": Số thứ tự (bắt đầu từ 1),
-      "content": "Thông tin dạng toán học (VD: v0 = 0 m/s)",
-      "level": 1 hoặc 2,
-      "source_text": "Đoạn text gốc trong đề bài",
-      "parent_id": Số thứ tự của key_point cha (nếu có, null nếu không),
-      "explanation": "Giải thích TẠI SAO là Level 1 hay 2"
+      "analysis_summary": "Tóm tắt đề bài và dạng bài (VD: Bài toán ném ngang, tìm tầm bay xa)",
+      "unit_check": {
+        "is_consistent": true/false,
+        "warning": "Cảnh báo nếu thấy đơn vị không đồng nhất (VD: cm và m, giờ và giây)"
+      },
+      "key_points": [
+        {
+          "id": "p1",
+          "symbol": "Ký hiệu đại lượng (VD: v, m, F, x)",
+          "value": "Giá trị (số hoặc biểu thức) hoặc 'Chưa biết' nếu là biến cần tìm hoặc biến level 3",
+          "unit": "Đơn vị (VD: m/s, kg)",
+          "level": 1, 2 hoặc 3,
+          "source_text": "Trích dẫn từ đề (nếu Level 1, level 2), hoặc lý do suy luận (nếu Level 3)",
+          "related_formula": "Ghi công thức liên quan nếu là Level 3 (VD: F = m*a). Nếu không có thì để null."
+          "dependencies": ["Danh sách ID các nút cha (parent nodes) liên quan"
+        }
+      ],
+      "target_unknowns": ["Danh sách các biến chính đề bài yêu cầu tìm"],
+      "suggested_formulas": [
+        "Danh sách các công thức SGK cần thiết để giải bài này (LaTeX format)"
+      ]
     }
-  ],
-  "unknowns": ["Danh sách các đại lượng cần tìm"]
-}
 
-LƯU Ý QUAN TRỌNG:
-- Nếu không chắc chắn về level, ưu tiên Level 1
-- Mỗi key_point phải có đầy đủ 6 trường: id, content, level, source_text, parent_id, explanation
-- key_points phải được sắp xếp theo thứ tự xuất hiện trong đề bài
-- key_points có parent_id chỉ khi nó là suy luận từ 1 hoặc nhiều key_point khác(Ví dụ, có key_point về "quãng đường" và "thời gian" thì mới có key_point suy luận về "vận tốc")
-- Unknowns phải là mảng string, liệt kê các đại lượng chưa biết cần tìm
-- Content phải viết theo ký hiệu toán học chuẩn (dùng ký tự ASCII hoặc Unicode math)`;
+    QUY TẮC AN TOÀN (ANTI-HALLUCINATION):
+    1. Nếu đề bài mập mờ, hãy gắn cờ warning ở phần unit_check hoặc summary.
+    2. Level 3 chỉ xuất hiện khi công thức liên kết là kiến thức cơ bản của lớp tương ứng.
+    3. Tuyệt đối tuân thủ định dạng JSON, không markdown thừa.
+    4. Sử dụng LaTeX cho các biểu thức toán học.
+    5. Mọi Key Point ở Level 3 PHẢI có danh sách "dependencies" chứa các ID hợp lệ của các Key Point khác đã liệt kê trước đó.
+    6. "dependencies" chính là hướng mũi tên của đồ thị: [Input IDs] -> [Output ID].
+    7. Nếu thông tin độc lập, dependencies là mảng rỗng [].
+    8. Không được tạo vòng lặp vô tận (Circular Dependency).`;
   }
 
   /**
    * Xây dựng user prompt từ input của client
    */
   constructUserPrompt(classLevel, subject, currentTopic, problemText) {
-    return `Phân tích đề bài sau đây:
+      return `PHÂN TÍCH ĐỀ BÀI SAU:
+      - Cấp độ: Lớp ${classLevel} (Chương trình Giáo dục Việt Nam)
+      - Môn: ${subject}
+      - Chủ đề/Chương: ${currentTopic} (Rất quan trọng để chọn công thức phù hợp)
 
-Lớp: ${classLevel}
-Môn học: ${subject}
-Chủ đề: ${currentTopic}
+      NỘI DUNG ĐỀ:
+      "${problemText}"
 
-ĐỀ BÀI:
-${problemText}
-
-Hãy phân tích và trả về JSON theo đúng format đã yêu cầu.`;
+      YÊU CẦU:
+      1. Trích xuất Level 1, Level 2.
+      2. Xác định Level 3 (các đại lượng ẩn có thể tính được từ dữ liệu đã có).
+      3. Kiểm tra tính nhất quán của đơn vị (Unit consistency).
+      4. Liệt kê các công thức SGK phù hợp với chủ đề "${currentTopic}".
+      
+      Trả về JSON object hợp lệ.`;
   }
 
 
@@ -211,33 +220,99 @@ Hãy phân tích và trả về JSON theo đúng format đã yêu cầu.`;
    */
   validateAnalysisResult(result) {
     // Kiểm tra các trường bắt buộc
-    if (!result.summary || typeof result.summary !== 'string') {
-      throw new Error('Thiếu hoặc sai định dạng trường "summary"');
+    if (!result.analysis_summary || typeof result.analysis_summary !== 'string') {
+      throw new Error('Thiếu hoặc sai định dạng trường "analysis_summary"');
     }
 
+    // Kiểm tra unit_check
+    if (!result.unit_check || typeof result.unit_check !== 'object') {
+      throw new Error('Thiếu hoặc sai định dạng trường "unit_check"');
+    }
+    if (typeof result.unit_check.is_consistent !== 'boolean') {
+      throw new Error('Trường "unit_check.is_consistent" phải là boolean');
+    }
+    if (result.unit_check.warning && typeof result.unit_check.warning !== 'string') {
+      throw new Error('Trường "unit_check.warning" phải là string nếu có');
+    }
+
+    // Kiểm tra key_points
     if (!Array.isArray(result.key_points)) {
       throw new Error('Trường "key_points" phải là một mảng');
     }
 
-    if (!Array.isArray(result.unknowns)) {
-      throw new Error('Trường "unknowns" phải là một mảng');
-    }
-
-    // Validate từng key_point
+    // Thu thập tất cả các ID hợp lệ để validate dependencies
+    const validIds = new Set();
+    
+    // Validate từng key_point với cấu trúc mới
     result.key_points.forEach((point, index) => {
-      if (!point.content || typeof point.content !== 'string') {
-        throw new Error(`key_points[${index}] thiếu hoặc sai định dạng trường "content"`);
+      if (!point.id || typeof point.id !== 'string') {
+        throw new Error(`key_points[${index}] thiếu hoặc sai định dạng trường "id"`);
       }
-      if (![1, 2].includes(point.level)) {
-        throw new Error(`key_points[${index}] trường "level" phải là 1 hoặc 2`);
+      
+      // Lưu ID để validate dependencies
+      validIds.add(point.id);
+      
+      if (!point.symbol || typeof point.symbol !== 'string') {
+        throw new Error(`key_points[${index}] thiếu hoặc sai định dạng trường "symbol"`);
+      }
+      if (point.value === undefined || point.value === null) {
+        throw new Error(`key_points[${index}] thiếu trường "value"`);
+      }
+      if (!point.unit || typeof point.unit !== 'string') {
+        throw new Error(`key_points[${index}] thiếu hoặc sai định dạng trường "unit"`);
+      }
+      if (![1, 2, 3].includes(point.level)) {
+        throw new Error(`key_points[${index}] trường "level" phải là 1, 2 hoặc 3`);
       }
       if (!point.source_text || typeof point.source_text !== 'string') {
         throw new Error(`key_points[${index}] thiếu hoặc sai định dạng trường "source_text"`);
       }
-      if (!point.explanation || typeof point.explanation !== 'string') {
-        throw new Error(`key_points[${index}] thiếu hoặc sai định dạng trường "explanation"`);
+      // related_formula có thể là null hoặc string
+      if (point.related_formula !== null && typeof point.related_formula !== 'string') {
+        throw new Error(`key_points[${index}] trường "related_formula" phải là string hoặc null`);
+      }
+      
+      // Validate dependencies (bắt buộc)
+      if (!Array.isArray(point.dependencies)) {
+        throw new Error(`key_points[${index}] trường "dependencies" phải là một mảng`);
+      }
+      
+      // Kiểm tra các phần tử trong dependencies phải là string
+      point.dependencies.forEach((depId, depIndex) => {
+        if (typeof depId !== 'string') {
+          throw new Error(`key_points[${index}].dependencies[${depIndex}] phải là string (ID hợp lệ)`);
+        }
+      });
+      
+      // Quy tắc đặc biệt cho Level 3: phải có ít nhất 1 dependency
+      if (point.level === 3 && point.dependencies.length === 0) {
+        throw new Error(`key_points[${index}] là Level 3 nhưng không có dependencies. Level 3 phải được tính từ các nút khác.`);
       }
     });
+
+    // Validate rằng tất cả dependencies trỏ đến các ID hợp lệ
+    result.key_points.forEach((point, index) => {
+      point.dependencies.forEach((depId) => {
+        if (!validIds.has(depId)) {
+          throw new Error(`key_points[${index}] có dependency "${depId}" không tồn tại trong danh sách key_points`);
+        }
+        
+        // Kiểm tra không tự tham chiếu (self-reference)
+        if (depId === point.id) {
+          throw new Error(`key_points[${index}] không được tự tham chiếu chính nó (circular dependency)`);
+        }
+      });
+    });
+
+    // Kiểm tra target_unknowns
+    if (!Array.isArray(result.target_unknowns)) {
+      throw new Error('Trường "target_unknowns" phải là một mảng');
+    }
+
+    // Kiểm tra suggested_formulas
+    if (!Array.isArray(result.suggested_formulas)) {
+      throw new Error('Trường "suggested_formulas" phải là một mảng');
+    }
 
     return true;
   }

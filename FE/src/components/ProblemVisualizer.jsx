@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Target } from 'lucide-react';
+import { CheckCircle2, Target, Lightbulb } from 'lucide-react';
 import InteractiveProblemText from './InteractiveProblemText';
 import AnalysisGraphView from './AnalysisGraphView';
 
@@ -29,7 +29,7 @@ const ProblemVisualizer = ({ analysisData, problemText }) => {
       className="space-y-6 max-w-7xl mx-auto"
     >
       {/* Summary Section */}
-      {analysisData.summary && (
+      {analysisData.analysis_summary && (
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -42,14 +42,14 @@ const ProblemVisualizer = ({ analysisData, problemText }) => {
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-bold text-gray-800 mb-2">Tóm Tắt Bài Toán</h3>
-              <p className="text-gray-700 leading-relaxed">{analysisData.summary}</p>
+              <p className="text-gray-700 leading-relaxed">{analysisData.analysis_summary}</p>
             </div>
           </div>
         </motion.div>
       )}
 
       {/* Unknowns Section */}
-      {analysisData.unknowns && analysisData.unknowns.length > 0 && (
+      {analysisData.target_unknowns && analysisData.target_unknowns.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -63,8 +63,8 @@ const ProblemVisualizer = ({ analysisData, problemText }) => {
             <div className="flex-1">
               <h3 className="text-lg font-bold text-gray-800 mb-2">Cần Tìm</h3>
               <ul className="list-disc list-inside space-y-1">
-                {analysisData.unknowns.map((unknown, idx) => (
-                  <li key={idx} className="text-gray-700">
+                {analysisData.target_unknowns.map((unknown, idx) => (
+                  <li key={idx} className="text-gray-700 font-mono">
                     {unknown}
                   </li>
                 ))}
@@ -95,6 +95,52 @@ const ProblemVisualizer = ({ analysisData, problemText }) => {
           />
         </div>
       </div>
+
+      {/* Unit Check Warning */}
+      {analysisData.unit_check && !analysisData.unit_check.is_consistent && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-red-50 border border-red-200 rounded-xl shadow-md p-6"
+        >
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-red-500 rounded-lg">
+              <CheckCircle2 className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-red-800 mb-2">⚠️ Cảnh Báo Đơn Vị</h3>
+              <p className="text-red-700">{analysisData.unit_check.warning}</p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Suggested Formulas */}
+      {analysisData.suggested_formulas && analysisData.suggested_formulas.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+          className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl shadow-md p-6 border border-purple-200"
+        >
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-purple-500 rounded-lg">
+              <Lightbulb className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-gray-800 mb-3">Công Thức Gợi Ý</h3>
+              <div className="space-y-2">
+                {analysisData.suggested_formulas.map((formula, idx) => (
+                  <div key={idx} className="bg-white bg-opacity-60 rounded-lg p-3">
+                    <code className="text-gray-800 text-sm">{formula}</code>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Instructions */}
       <motion.div

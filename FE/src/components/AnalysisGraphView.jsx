@@ -7,6 +7,8 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   MarkerType,
+  Handle,
+  Position,
 } from 'reactflow';
 import dagre from 'dagre';
 import { GitBranch, ZoomIn } from 'lucide-react';
@@ -50,14 +52,41 @@ const CustomNode = ({ data, selected }) => {
           : '0 4px 15px rgba(0, 0, 0, 0.1)'
       }}
     >
+      {/* React Flow Handles - Required for edge connections */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        style={{
+          background: colors.border,
+          width: '10px',
+          height: '10px',
+          border: '2px solid white',
+        }}
+      />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        style={{
+          background: colors.border,
+          width: '10px',
+          height: '10px',
+          border: '2px solid white',
+        }}
+      />
+
       {/* Node Content */}
       <div className="text-center px-3">
         <p 
-          className="font-bold text-sm leading-tight"
+          className="font-bold text-base leading-tight mb-0.5"
           style={{ color: colors.text }}
         >
-          {data.label}
+          {data.symbol}
         </p>
+        {data.value && (
+          <p className="text-xs font-medium text-gray-600">
+            {data.value}
+          </p>
+        )}
       </div>
 
       {/* Link Indicator Badge */}
@@ -138,11 +167,13 @@ const AnalysisGraphView = ({ keyPoints, activeNodeId, onNodeClick }) => {
       id: String(point.id),
       type: 'custom',
       data: {
-        label: point.content,
+        label: point.symbol || point.value || 'Node',
+        symbol: point.symbol,
+        value: point.value,
+        unit: point.unit,
         level: point.level,
         source_text: point.source_text,
-        explanation: point.explanation,
-        parent_id: point.parent_id,
+        related_formula: point.related_formula,
         fullData: point,
       },
       position: { x: 0, y: 0 },
@@ -150,28 +181,62 @@ const AnalysisGraphView = ({ keyPoints, activeNodeId, onNodeClick }) => {
   }, [keyPoints]);
 
   // Convert parent-child relationships to React Flow edges
+  // Supports both old parent_id field and new dependencies array
   const initialEdges = useMemo(() => {
-    return keyPoints
-      .filter((point) => point.parent_id !== null)
-      .map((point) => ({
-        id: `e${point.parent_id}-${point.id}`,
-        source: String(point.parent_id),
-        target: String(point.id),
-        type: 'smoothstep',
-        animated: activeNodeId === point.id || activeNodeId === point.parent_id,
-        style: {
-          stroke: activeNodeId === point.id || activeNodeId === point.parent_id ? '#3b82f6' : '#d1d5db',
-          strokeWidth: activeNodeId === point.id || activeNodeId === point.parent_id ? 3 : 2,
-        },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: activeNodeId === point.id || activeNodeId === point.parent_id ? '#3b82f6' : '#9ca3af',
-        },
-        data: {
-          sourceId: point.parent_id,
-          targetId: point.id,
-        },
-      }));
+    const edges = [];
+    
+    keyPoints.forEach((point) => {
+      // Handle new dependencies array (multi-parent support)
+      if (point.dependencies && Array.isArray(point.dependencies) && point.dependencies.length > 0) {
+        point.dependencies.forEach((depId) => {
+          const isActive = activeNodeId === String(point.id) || activeNodeId === String(depId);
+          edges.push({
+            id: `e${depId}-${point.id}`,
+            source: String(depId),
+            target: String(point.id),
+            type: 'smoothstep',
+            animated: isActive,
+            style: {
+              stroke: isActive ? '#3b82f6' : '#d1d5db',
+              strokeWidth: isActive ? 3 : 2,
+            },
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              color: isActive ? '#3b82f6' : '#9ca3af',
+            },
+            data: {
+              sourceId: depId,
+              targetId: point.id,
+            },
+          });
+        });
+      }
+      // Backward compatibility: handle old parent_id field
+      else if (point.parent_id !== null && point.parent_id !== undefined) {
+        const isActive = activeNodeId === String(point.id) || activeNodeId === String(point.parent_id);
+        edges.push({
+          id: `e${point.parent_id}-${point.id}`,
+          source: String(point.parent_id),
+          target: String(point.id),
+          type: 'smoothstep',
+          animated: isActive,
+          style: {
+            stroke: isActive ? '#3b82f6' : '#d1d5db',
+            strokeWidth: isActive ? 3 : 2,
+          },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: isActive ? '#3b82f6' : '#9ca3af',
+          },
+          data: {
+            sourceId: point.parent_id,
+            targetId: point.id,
+          },
+        });
+      }
+    });
+    
+    return edges;
   }, [keyPoints, activeNodeId]);
 
   // Layout nodes with dagre
@@ -185,10 +250,10 @@ const AnalysisGraphView = ({ keyPoints, activeNodeId, onNodeClick }) => {
   // Handle node click
   const onNodeClickHandler = useCallback(
     (event, node) => {
-      const nodeData = keyPoints.find((p) => p.id === parseInt(node.id));
+      const nodeData = keyPoints.find((p) => String(p.id) === node.id);
       setSelectedNode(nodeData);
       setIsSidebarOpen(true);
-      onNodeClick(parseInt(node.id));
+      onNodeClick(node.id);
     },
     [keyPoints, onNodeClick]
   );
@@ -196,8 +261,8 @@ const AnalysisGraphView = ({ keyPoints, activeNodeId, onNodeClick }) => {
   // Handle edge click
   const onEdgeClickHandler = useCallback(
     (event, edge) => {
-      const sourceNode = keyPoints.find((p) => p.id === parseInt(edge.source));
-      const targetNode = keyPoints.find((p) => p.id === parseInt(edge.target));
+      const sourceNode = keyPoints.find((p) => String(p.id) === edge.source);
+      const targetNode = keyPoints.find((p) => String(p.id) === edge.target);
       
       setEdgeInfo({
         source: sourceNode,
@@ -298,11 +363,11 @@ const AnalysisGraphView = ({ keyPoints, activeNodeId, onNodeClick }) => {
             <div className="flex-1">
               <h4 className="font-semibold text-sm text-gray-800 mb-1">Suy luận</h4>
               <p className="text-xs text-gray-700 leading-relaxed">
-                Dữ kiện <span className="font-bold">"{edgeInfo.target.content}"</span> được suy ra từ <span className="font-bold">"{edgeInfo.source.content}"</span>
+                Dữ kiện <span className="font-bold font-mono">{edgeInfo.target.symbol}: {edgeInfo.target.value}</span> được suy ra từ <span className="font-bold font-mono">{edgeInfo.source.symbol}: {edgeInfo.source.value}</span>
               </p>
-              {edgeInfo.target.explanation && (
+              {edgeInfo.target.related_formula && (
                 <p className="text-xs text-gray-600 mt-2 italic border-t pt-2">
-                  {edgeInfo.target.explanation}
+                  Công thức: <code>{edgeInfo.target.related_formula}</code>
                 </p>
               )}
             </div>
@@ -332,7 +397,7 @@ const AnalysisGraphView = ({ keyPoints, activeNodeId, onNodeClick }) => {
           </div>
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 rounded-full border-2 border-purple-400 bg-purple-50"></div>
-            <span className="text-xs text-gray-600">Kết luận</span>
+            <span className="text-xs text-gray-600">Dữ liệu ẩn</span>
           </div>
         </div>
       </div>

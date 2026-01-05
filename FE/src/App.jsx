@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, RefreshCw, Sparkles } from 'lucide-react';
 import InputForm from './components/InputForm';
 import ProblemVisualizer from './components/ProblemVisualizer';
-import { analyzeProblem } from './services/mockApi';
+import { analyzeProblem } from './services/Api';
 import './App.css';
 
 function App() {
