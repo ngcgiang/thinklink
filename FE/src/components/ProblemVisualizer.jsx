@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Target } from 'lucide-react';
 import InteractiveProblemText from './InteractiveProblemText';
-import CascadingGraph from './CascadingGraph';
+import AnalysisGraphView from './AnalysisGraphView';
 
 const ProblemVisualizer = ({ analysisData, problemText }) => {
   const [activeNodeId, setActiveNodeId] = useState(null);
@@ -86,9 +86,9 @@ const ProblemVisualizer = ({ analysisData, problemText }) => {
           />
         </div>
 
-        {/* Area B: Cascading Graph */}
+        {/* Area B: Analysis Graph View (New!) */}
         <div className="lg:col-span-1">
-          <CascadingGraph
+          <AnalysisGraphView
             keyPoints={analysisData.key_points}
             activeNodeId={activeNodeId}
             onNodeClick={handleNodeClick}
