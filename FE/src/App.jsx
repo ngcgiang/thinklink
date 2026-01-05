@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Brain, RefreshCw, Sparkles } from 'lucide-react';
+import { Brain, RefreshCw, Sparkles, Mail } from 'lucide-react';
 import InputForm from './components/InputForm';
 import ProblemVisualizer from './components/ProblemVisualizer';
 import { analyzeProblem } from './services/Api';
@@ -93,15 +93,14 @@ function App() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-8"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full mb-4">
-              <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-medium">Powered by AI</span>
-            </div>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-3">
               Phân Tích Đề Bài Thông Minh
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Công cụ AI giúp bạn hiểu rõ đề bài, phân tích dữ kiện và xây dựng lộ trình giải quyết vấn đề
+              Công cụ AI giúp bạn hiểu rõ đề bài, phân tích dữ kiện
+            </p>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              và vì đây là AI nên hãy kiểm chứng thông tin trước khi áp dụng nhé!
             </p>
           </motion.div>
         )}
@@ -191,12 +190,45 @@ function App() {
         </AnimatePresence>
       </main>
 
+      {/* Contact Section */}
+      <section className="mt-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl shadow-md p-6 border border-cyan-200"
+        >
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-blue-500 rounded-lg">
+              <Mail className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-lg font-bold text-gray-800 mb-2">Liên Hệ & Góp Ý</h2>
+              <p className="text-gray-700 leading-relaxed">
+                Nếu bạn có câu hỏi, góp ý hoặc nếu em cần chỉ bài hãy liên hệ qua Facebook (đừng ngại vì ngại ko ai chỉ bài đâu):{' '}
+                <a 
+                  href="https://www.facebook.com/ngcgiang18.03" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-700 underline font-medium transition-colors"
+                >
+                  ngcjang
+                </a>
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
       {/* Footer */}
       <footer className="mt-16 py-6 border-t border-gray-200 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-gray-500 text-sm">
-            © 2026 ThinkLink - AI-Powered Educational Analysis Tool
-          </p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center space-y-2">
+            <p className="text-gray-500 text-sm">
+              © 2026 ThinkLink - AI-Powered Educational Analysis Tool - developed by ngcjang
+            </p>
+          </div>
         </div>
       </footer>
     </div>

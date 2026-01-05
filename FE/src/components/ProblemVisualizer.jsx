@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Target, Lightbulb } from 'lucide-react';
 import InteractiveProblemText from './InteractiveProblemText';
 import AnalysisGraphView from './AnalysisGraphView';
+import LaTeXFormula from './LaTeXFormula';
 
 const ProblemVisualizer = ({ analysisData, problemText }) => {
   const [activeNodeId, setActiveNodeId] = useState(null);
@@ -130,11 +131,19 @@ const ProblemVisualizer = ({ analysisData, problemText }) => {
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-bold text-gray-800 mb-3">Công Thức Gợi Ý</h3>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {analysisData.suggested_formulas.map((formula, idx) => (
-                  <div key={idx} className="bg-white bg-opacity-60 rounded-lg p-3">
-                    <code className="text-gray-800 text-sm">{formula}</code>
-                  </div>
+                  <motion.div 
+                    key={idx} 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: idx * 0.1 }}
+                    className="bg-white bg-opacity-80 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow border border-purple-100"
+                  >
+                    <div className="flex items-center justify-center">
+                      <LaTeXFormula formula={formula} displayMode={true} />
+                    </div>
+                  </motion.div>
                 ))}
               </div>
             </div>

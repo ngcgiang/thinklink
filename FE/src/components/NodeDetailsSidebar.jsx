@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Info, Lightbulb, Link2, Tag } from 'lucide-react';
+import LaTeXFormula from './LaTeXFormula';
 
 const NodeDetailsSidebar = ({ node, isOpen, onClose }) => {
   if (!node) return null;
@@ -112,7 +113,9 @@ const NodeDetailsSidebar = ({ node, isOpen, onClose }) => {
                     </div>
                     <div className="flex-1">
                       <h4 className="text-sm font-semibold text-gray-700 mb-2">Công thức liên quan</h4>
-                      <code className="text-gray-800 bg-white px-3 py-2 rounded block">{node.related_formula}</code>
+                      <div className="bg-white px-3 py-2 rounded flex items-center justify-center">
+                        <LaTeXFormula formula={node.related_formula} displayMode={false} />
+                      </div>
                     </div>
                   </div>
                 </div>

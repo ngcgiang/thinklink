@@ -56,7 +56,7 @@ class HuggingFaceService {
           "value": "Giá trị (số hoặc biểu thức) hoặc 'Chưa biết' nếu là biến cần tìm hoặc biến level 3",
           "unit": "Đơn vị (VD: m/s, kg)",
           "level": 1, 2 hoặc 3,
-          "source_text": "Trích dẫn từ đề (nếu Level 1, level 2), hoặc lý do suy luận (nếu Level 3)",
+          "source_text": "Trích dẫn chính xác từ đề không tự ý viết hoa (nếu Level 1, level 2), hoặc lý do suy luận (nếu Level 3)",
           "related_formula": "Ghi công thức liên quan nếu là Level 3 (VD: F = m*a). Nếu không có thì để null."
           "dependencies": ["Danh sách ID các nút cha (parent nodes) liên quan"
         }
