@@ -357,7 +357,7 @@ const AnalysisGraphView = ({ keyPoints, activeNodeId, onNodeClick }) => {
       });
 
       // Auto-hide after 5 seconds
-      setTimeout(() => setEdgeInfo(null), 8000);
+      setTimeout(() => setEdgeInfo(null), 15000);
     },
     [keyPoints]
   );
