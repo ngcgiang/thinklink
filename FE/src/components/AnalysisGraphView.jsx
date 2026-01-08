@@ -328,15 +328,36 @@ const AnalysisGraphView = ({ keyPoints, activeNodeId, onNodeClick }) => {
       const sourceNode = keyPoints.find((p) => String(p.id) === edge.source);
       const targetNode = keyPoints.find((p) => String(p.id) === edge.target);
       
+      // Calculate position with overflow prevention
+      const gap = 10;
+      const dialogWidth = 384; // max-w-sm = 24rem = 384px
+      const dialogHeight = 200; // Estimated height
+      
+      const mouseX = event.clientX;
+      const mouseY = event.clientY;
+      
+      // Check horizontal overflow - dialog appears left or right of cursor
+      const isHorizontalOverflow = (mouseX + dialogWidth + gap) > window.innerWidth;
+      let leftPos = isHorizontalOverflow ? (mouseX - dialogWidth) : mouseX;
+      
+      // Only ensure minimum gap if dialog would go off-screen to the left
+      if (leftPos < 0) {
+        leftPos = gap;
+      }
+      
+      // Center dialog vertically relative to cursor position
+      // Ensure it doesn't overflow top or bottom
+      const topPos = Math.max(gap, Math.min(mouseY - dialogHeight / 2, window.innerHeight - dialogHeight - gap));
+      
       setEdgeInfo({
         source: sourceNode,
         target: targetNode,
-        x: event.clientX,
-        y: event.clientY,
+        x: leftPos,
+        y: topPos,
       });
 
       // Auto-hide after 5 seconds
-      setTimeout(() => setEdgeInfo(null), 5000);
+      setTimeout(() => setEdgeInfo(null), 8000);
     },
     [keyPoints]
   );
@@ -413,21 +434,16 @@ const AnalysisGraphView = ({ keyPoints, activeNodeId, onNodeClick }) => {
           exit={{ opacity: 0, scale: 0.9 }}
           className="fixed z-50 bg-white rounded-lg shadow-2xl p-4 border-2 border-blue-300 max-w-sm"
           style={{
-            left: `${edgeInfo.x + 10}px`,
-            top: `${edgeInfo.y + 10}px`,
+            left: `${edgeInfo.x}px`,
+            top: `${edgeInfo.y}px`,
           }}
           onClick={() => setEdgeInfo(null)}
         >
           <div className="flex items-start gap-2">
-            <div className="p-1.5 bg-blue-100 rounded">
-              <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </div>
             <div className="flex-1">
               <h4 className="font-semibold text-sm text-gray-800 mb-1">Suy luận</h4>
               <p className="text-xs text-gray-700 leading-relaxed">
-                Dữ kiện <span className="font-bold">{renderTextWithLaTeX(edgeInfo.target.symbol)}: {edgeInfo.target.value}</span> được suy ra từ <span className="font-bold">{renderTextWithLaTeX(edgeInfo.source.symbol)}: {edgeInfo.source.value}</span>
+                Dữ kiện <span className="font-bold">{renderTextWithLaTeX(edgeInfo.target.symbol)}: {edgeInfo.target.value}</span> được suy ra từ <span className="font-bold">{renderTextWithLaTeX(edgeInfo.source.symbol)}: {renderTextWithLaTeX(edgeInfo.source.value)}</span>
               </p>
               {edgeInfo.target.related_formula && (
                 <div className="text-xs text-gray-600 mt-2 italic border-t pt-2">
