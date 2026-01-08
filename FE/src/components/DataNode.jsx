@@ -1,6 +1,76 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Info, Lightbulb, Link2 } from 'lucide-react';
+import LaTeXFormula from './LaTeXFormula';
+
+/**
+ * Helper function to render text that may contain LaTeX formulas
+ * Detects inline LaTeX ($...$) and display LaTeX ($$...$$)
+ */
+const renderTextWithLaTeX = (text) => {
+  if (!text) return null;
+  
+  // Check if text contains LaTeX markers
+  const hasLaTeX = /\$\$[\s\S]+?\$\$|\$[^$]+?\$/.test(text);
+  
+  if (!hasLaTeX) {
+    return text;
+  }
+  
+  // Split text by LaTeX patterns
+  const parts = [];
+  let lastIndex = 0;
+  
+  // Match display mode ($$...$$) first, then inline mode ($...$)
+  const regex = /\$\$([\s\S]+?)\$\$|\$([^$]+?)\$/g;
+  let match;
+  
+  while ((match = regex.exec(text)) !== null) {
+    // Add text before the match
+    if (match.index > lastIndex) {
+      parts.push({
+        type: 'text',
+        content: text.slice(lastIndex, match.index)
+      });
+    }
+    
+    // Add LaTeX formula
+    const formula = match[1] || match[2]; // $$...$$ or $...$
+    const isDisplayMode = !!match[1];
+    
+    parts.push({
+      type: 'latex',
+      content: formula,
+      displayMode: isDisplayMode
+    });
+    
+    lastIndex = regex.lastIndex;
+  }
+  
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push({
+      type: 'text',
+      content: text.slice(lastIndex)
+    });
+  }
+  
+  return (
+    <>
+      {parts.map((part, idx) => (
+        part.type === 'latex' ? (
+          <LaTeXFormula 
+            key={idx} 
+            formula={part.content} 
+            displayMode={part.displayMode}
+          />
+        ) : (
+          <span key={idx}>{part.content}</span>
+        )
+      ))}
+    </>
+  );
+};
 
 const DataNode = ({ node, isActive, onClick, index, nodeRef }) => {
   const getLevelColor = (level) => {
@@ -64,7 +134,7 @@ const DataNode = ({ node, isActive, onClick, index, nodeRef }) => {
       {/* Content */}
       <div className="mb-3">
         <p className="text-lg font-semibold text-gray-800 mb-1">
-          {node.content}
+          {renderTextWithLaTeX(node.content)}
         </p>
       </div>
 
@@ -73,7 +143,7 @@ const DataNode = ({ node, isActive, onClick, index, nodeRef }) => {
         <div className="bg-white bg-opacity-60 rounded-lg p-3 mb-2">
           <div className="flex items-start gap-2">
             <Lightbulb className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-            <p className="text-sm text-gray-700">{node.explanation}</p>
+            <p className="text-sm text-gray-700">{renderTextWithLaTeX(node.explanation)}</p>
           </div>
         </div>
       )}
@@ -84,7 +154,7 @@ const DataNode = ({ node, isActive, onClick, index, nodeRef }) => {
           <div className="flex items-start gap-2">
             <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <p className="text-xs text-gray-600 italic line-clamp-2">
-              "{node.source_text}"
+              "{renderTextWithLaTeX(node.source_text)}"
             </p>
           </div>
         </div>

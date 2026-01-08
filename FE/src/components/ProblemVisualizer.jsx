@@ -38,9 +38,6 @@ const ProblemVisualizer = ({ analysisData, problemText }) => {
           className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-md p-6 border border-blue-200"
         >
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-blue-500 rounded-lg">
-              <Target className="w-5 h-5 text-white" />
-            </div>
             <div className="flex-1">
               <h3 className="text-lg font-bold text-gray-800 mb-2">Tóm Tắt Bài Toán</h3>
               <p className="text-gray-700 leading-relaxed">{analysisData.analysis_summary}</p>
@@ -58,9 +55,6 @@ const ProblemVisualizer = ({ analysisData, problemText }) => {
           className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl shadow-md p-6 border border-amber-200"
         >
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-orange-500 rounded-lg">
-              <CheckCircle2 className="w-5 h-5 text-white" />
-            </div>
             <div className="flex-1">
               <h3 className="text-lg font-bold text-gray-800 mb-2">Cần Tìm</h3>
               <ul className="list-disc list-inside space-y-1">
@@ -96,26 +90,6 @@ const ProblemVisualizer = ({ analysisData, problemText }) => {
           />
         </div>
       </div>
-
-      {/* Unit Check Warning */}
-      {analysisData.unit_check && !analysisData.unit_check.is_consistent && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="bg-red-50 border border-red-200 rounded-xl shadow-md p-6"
-        >
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-red-500 rounded-lg">
-              <CheckCircle2 className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-bold text-red-800 mb-2">⚠️ Cảnh Báo Đơn Vị</h3>
-              <p className="text-red-700">{analysisData.unit_check.warning}</p>
-            </div>
-          </div>
-        </motion.div>
-      )}
 
       {/* Suggested Formulas */}
       {analysisData.suggested_formulas && analysisData.suggested_formulas.length > 0 && (

@@ -3,6 +3,131 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Info, Lightbulb, Link2, Tag } from 'lucide-react';
 import LaTeXFormula from './LaTeXFormula';
 
+/**
+ * Helper function to render text that may contain LaTeX formulas
+ * Detects inline LaTeX ($...$), display LaTeX ($$...$$), and auto-detects math expressions
+ */
+const renderTextWithLaTeX = (text) => {
+  if (!text) return null;
+  
+  // First, check for explicit LaTeX markers ($...$ or $$...$$)
+  const hasExplicitLaTeX = /\$\$[\s\S]+?\$\$|\$[^$]+?\$/.test(text);
+  
+  // If has explicit markers, use them
+  if (hasExplicitLaTeX) {
+    const parts = [];
+    let lastIndex = 0;
+    const regex = /\$\$([\s\S]+?)\$\$|\$([^$]+?)\$/g;
+    let match;
+    
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push({
+          type: 'text',
+          content: text.slice(lastIndex, match.index)
+        });
+      }
+      
+      const formula = match[1] || match[2];
+      const isDisplayMode = !!match[1];
+      
+      parts.push({
+        type: 'latex',
+        content: formula,
+        displayMode: isDisplayMode
+      });
+      
+      lastIndex = regex.lastIndex;
+    }
+    
+    if (lastIndex < text.length) {
+      parts.push({
+        type: 'text',
+        content: text.slice(lastIndex)
+      });
+    }
+    
+    return (
+      <>
+        {parts.map((part, idx) => (
+          part.type === 'latex' ? (
+            <LaTeXFormula 
+              key={idx} 
+              formula={part.content} 
+              displayMode={part.displayMode}
+            />
+          ) : (
+            <span key={idx}>{part.content}</span>
+          )
+        ))}
+      </>
+    );
+  }
+  
+  // Auto-detect math expressions (variables with subscripts, equations, etc.)
+  // Pattern: detects expressions like "v = v_0 + a * t" or "F = m * a"
+  const mathPattern = /([a-zA-Z][a-zA-Z0-9]*(?:_[a-zA-Z0-9]+|\^[a-zA-Z0-9]+)*(?:\s*[+\-*/=]\s*[a-zA-Z0-9_^()\s+\-*/]+)*)/g;
+  
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+  
+  while ((match = mathPattern.exec(text)) !== null) {
+    // Check if this looks like a real math expression (has operators or subscripts)
+    const expr = match[1];
+    const hasMathChars = /[_^+\-*/=]/.test(expr);
+    
+    if (hasMathChars) {
+      // Add text before the match
+      if (match.index > lastIndex) {
+        parts.push({
+          type: 'text',
+          content: text.slice(lastIndex, match.index)
+        });
+      }
+      
+      // Add math expression
+      parts.push({
+        type: 'latex',
+        content: expr.trim(),
+        displayMode: false
+      });
+      
+      lastIndex = match.index + match[0].length;
+    }
+  }
+  
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push({
+      type: 'text',
+      content: text.slice(lastIndex)
+    });
+  }
+  
+  // If no math detected, return plain text
+  if (parts.length === 0) {
+    return text;
+  }
+  
+  return (
+    <>
+      {parts.map((part, idx) => (
+        part.type === 'latex' ? (
+          <LaTeXFormula 
+            key={idx} 
+            formula={part.content} 
+            displayMode={part.displayMode}
+          />
+        ) : (
+          <span key={idx}>{part.content}</span>
+        )
+      ))}
+    </>
+  );
+};
+
+
 const NodeDetailsSidebar = ({ node, isOpen, onClose }) => {
   if (!node) return null;
 
@@ -86,13 +211,15 @@ const NodeDetailsSidebar = ({ node, isOpen, onClose }) => {
                   {node.symbol && (
                     <div>
                       <span className="text-xs text-gray-500">Ký hiệu:</span>
-                      <p className="text-2xl font-bold text-gray-900 font-mono">{node.symbol}</p>
+                      <div className="text-2xl font-bold text-gray-900">
+                        <LaTeXFormula formula={node.symbol} displayMode={false} />
+                      </div>
                     </div>
                   )}
                   {node.value && (
                     <div>
                       <span className="text-xs text-gray-500">Giá trị:</span>
-                      <p className="text-xl font-semibold text-gray-800">{node.value}</p>
+                      <p className="text-xl font-semibold text-gray-800">{renderTextWithLaTeX(node.value)}</p>
                     </div>
                   )}
                   {node.unit && (
@@ -129,8 +256,8 @@ const NodeDetailsSidebar = ({ node, isOpen, onClose }) => {
                       <Link2 className="w-5 h-5 text-green-700" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Nguồn từ đề bài</h4>
-                      <p className="text-gray-800 italic leading-relaxed">"{node.source_text}"</p>
+                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Nguồn suy luận</h4>
+                      <p className="text-gray-800 italic leading-relaxed">"{renderTextWithLaTeX(node.source_text)}"</p>
                     </div>
                   </div>
                 </div>

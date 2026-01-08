@@ -168,9 +168,6 @@ function App() {
                 className="bg-white rounded-xl shadow-lg p-6 mb-6"
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <Sparkles className="w-6 h-6 text-green-600" />
-                  </div>
                   <div>
                     <h2 className="text-2xl font-bold text-gray-800">Kết Quả Phân Tích</h2>
                     <p className="text-sm text-gray-500">
@@ -206,7 +203,7 @@ function App() {
             <div className="flex-1">
               <h2 className="text-lg font-bold text-gray-800 mb-2">Liên Hệ & Góp Ý</h2>
               <p className="text-gray-700 leading-relaxed">
-                Nếu bạn có câu hỏi, góp ý hoặc nếu em cần chỉ bài hãy liên hệ qua Facebook (đừng ngại vì ngại ko ai chỉ bài đâu):{' '}
+                Nếu bạn có câu hỏi, góp ý hoặc nếu em cần hỏi bài hãy liên hệ qua Facebook (đừng ngại vì ngại ko ai chỉ bài đâu):{' '}
                 <a 
                   href="https://www.facebook.com/ngcgiang18.03" 
                   target="_blank"

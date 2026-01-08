@@ -14,6 +14,68 @@ import dagre from 'dagre';
 import { GitBranch, ZoomIn } from 'lucide-react';
 import 'reactflow/dist/style.css';
 import NodeDetailsSidebar from './NodeDetailsSidebar';
+import LaTeXFormula from './LaTeXFormula';
+
+/**
+ * Helper function to render text that may contain LaTeX formulas
+ */
+const renderTextWithLaTeX = (text) => {
+  if (!text) return null;
+  
+  const hasLaTeX = /\$\$[\s\S]+?\$\$|\$[^$]+?\$/.test(text);
+  
+  if (!hasLaTeX) {
+    return text;
+  }
+  
+  const parts = [];
+  let lastIndex = 0;
+  const regex = /\$\$([\s\S]+?)\$\$|\$([^$]+?)\$/g;
+  let match;
+  
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({
+        type: 'text',
+        content: text.slice(lastIndex, match.index)
+      });
+    }
+    
+    const formula = match[1] || match[2];
+    const isDisplayMode = !!match[1];
+    
+    parts.push({
+      type: 'latex',
+      content: formula,
+      displayMode: isDisplayMode
+    });
+    
+    lastIndex = regex.lastIndex;
+  }
+  
+  if (lastIndex < text.length) {
+    parts.push({
+      type: 'text',
+      content: text.slice(lastIndex)
+    });
+  }
+  
+  return (
+    <>
+      {parts.map((part, idx) => (
+        part.type === 'latex' ? (
+          <LaTeXFormula 
+            key={idx} 
+            formula={part.content} 
+            displayMode={part.displayMode}
+          />
+        ) : (
+          <span key={idx}>{part.content}</span>
+        )
+      ))}
+    </>
+  );
+};
 
 // Custom Node Component
 const CustomNode = ({ data, selected }) => {
@@ -76,15 +138,17 @@ const CustomNode = ({ data, selected }) => {
 
       {/* Node Content */}
       <div className="text-center px-3">
-        <p 
+        <div 
           className="font-bold text-base leading-tight mb-0.5"
           style={{ color: colors.text }}
         >
-          {data.symbol}
-        </p>
+          {data.symbol ? (
+            <LaTeXFormula formula={data.symbol} displayMode={false} />
+          ) : null}
+        </div>
         {data.value && (
           <p className="text-xs font-medium text-gray-600">
-            {data.value}
+            {  renderTextWithLaTeX(data.value)}
           </p>
         )}
       </div>
@@ -363,12 +427,12 @@ const AnalysisGraphView = ({ keyPoints, activeNodeId, onNodeClick }) => {
             <div className="flex-1">
               <h4 className="font-semibold text-sm text-gray-800 mb-1">Suy luận</h4>
               <p className="text-xs text-gray-700 leading-relaxed">
-                Dữ kiện <span className="font-bold font-mono">{edgeInfo.target.symbol}: {edgeInfo.target.value}</span> được suy ra từ <span className="font-bold font-mono">{edgeInfo.source.symbol}: {edgeInfo.source.value}</span>
+                Dữ kiện <span className="font-bold">{renderTextWithLaTeX(edgeInfo.target.symbol)}: {edgeInfo.target.value}</span> được suy ra từ <span className="font-bold">{renderTextWithLaTeX(edgeInfo.source.symbol)}: {edgeInfo.source.value}</span>
               </p>
               {edgeInfo.target.related_formula && (
-                <p className="text-xs text-gray-600 mt-2 italic border-t pt-2">
-                  Công thức: <code>{edgeInfo.target.related_formula}</code>
-                </p>
+                <div className="text-xs text-gray-600 mt-2 italic border-t pt-2">
+                  Công thức: <LaTeXFormula formula={edgeInfo.target.related_formula} displayMode={false} />
+                </div>
               )}
             </div>
           </div>
