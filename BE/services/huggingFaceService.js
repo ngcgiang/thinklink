@@ -36,9 +36,11 @@ class HuggingFaceService {
         * "Rơi tự do" -> v0 = 0, a = g ≈ 10m/s².
         * "Nước" -> D = 1000kg/m³, c = 4200 J/kg.K.
         * "Tam giác đều" -> Các góc = 60 độ.
+        * "Khởi hành" / "Thả rơi" -> v0 = 0.
 
     3. LEVEL 3 - DERIVABLE (Nút kết quả trung gian):
        - Là nút con (child node) được tính toán từ các nút cha (parent nodes).
+       - Không tính giá trị của đại lượng này.
        - Đây là phần QUAN TRỌNG NHẤT.
        - Là các đại lượng được tính từ L1, L2 HOẶC TỪ CÁC L3 KHÁC.
        - Cơ chế "Deep Linking": Nếu tính được đại lượng A (L3), hãy dùng A kết hợp với dữ liệu cũ để tìm đại lượng B (L3 tiếp theo).
@@ -59,7 +61,7 @@ class HuggingFaceService {
         {
           "id": "p1",
           "symbol": "Ký hiệu đại lượng (VD: v, m, F, x)",
-          "value": "Giá trị (số hoặc biểu thức) hoặc 'Chưa biết' nếu là biến cần tìm hoặc biến level 3",
+          "value": "Giá trị (số hoặc biểu thức của level 1 hoặc 2) hoặc 'Chưa biết' nếu là biến cần tìm hoặc biến level 3",
           "unit": "Đơn vị (VD: m/s, kg, hoặc là đvđ nếu trong toán học không có đơn vị)",
           "level": 1, 2 hoặc 3,
           "source_text": "Trích dẫn chính xác từ đề không tự ý viết hoa (chỉ viết hoa chữ cái đầu câu) (nếu Level 1, level 2), hoặc lý do suy luận (nếu Level 3)",
