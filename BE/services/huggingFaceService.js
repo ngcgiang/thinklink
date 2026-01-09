@@ -61,7 +61,7 @@ class HuggingFaceService {
         {
           "id": "p1",
           "symbol": "Ký hiệu đại lượng (VD: v, m, F, x)",
-          "value": "Giá trị (số hoặc biểu thức của level 1 hoặc 2) hoặc 'Chưa biết' nếu là biến cần tìm, biến level 3, hoặc là công thức",
+          "value": "Giá trị (số của level 1 hoặc 2) hoặc 'Chưa biết' nếu là biến cần tìm, biến level 3, hoặc là biểu thức",
           "unit": "Đơn vị (VD: m/s, kg, hoặc là đvđ nếu trong toán học không có đơn vị)",
           "level": 1, 2 hoặc 3,
           "source_text": "Trích dẫn chính xác từ đề không tự ý viết hoa (chỉ viết hoa chữ cái đầu câu) (nếu Level 1, level 2), hoặc lý do suy luận (nếu Level 3)",
@@ -79,7 +79,7 @@ class HuggingFaceService {
     1. Nếu đề bài mập mờ, hãy gắn cờ warning ở phần unit_check hoặc summary.
     2. Level 3 chỉ xuất hiện khi công thức liên kết là kiến thức cơ bản của lớp tương ứng.
     3. Tuyệt đối tuân thủ định dạng JSON, không markdown thừa.
-    4. Sử dụng LaTeX cho các biểu thức toán học.
+    4. Sử dụng LaTeX cho các biểu thức toán học đóng $...$. Ví dụ $F = m \times a$.
     5. Mọi Key Point ở Level 3 PHẢI có danh sách "dependencies" chứa các ID hợp lệ của các Key Point khác đã liệt kê trước đó.
     6. "dependencies" chính là hướng mũi tên của đồ thị: [Input IDs] -> [Output ID].
     7. Nếu thông tin độc lập, dependencies là mảng rỗng [].
