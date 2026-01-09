@@ -60,7 +60,7 @@ const ProblemVisualizer = ({ analysisData, problemText }) => {
               <ul className="list-disc list-inside space-y-1">
                 {analysisData.target_unknowns.map((unknown, idx) => (
                   <li key={idx} className="text-gray-700 font-mono">
-                    {unknown}
+                    { <LaTeXFormula formula={unknown} displayMode={true} />}
                   </li>
                 ))}
               </ul>
