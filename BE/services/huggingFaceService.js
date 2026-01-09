@@ -79,7 +79,7 @@ class HuggingFaceService {
     1. Nếu đề bài mập mờ, hãy gắn cờ warning ở phần unit_check hoặc summary.
     2. Level 3 chỉ xuất hiện khi công thức liên kết là kiến thức cơ bản của lớp tương ứng.
     3. Tuyệt đối tuân thủ định dạng JSON, không markdown thừa.
-    4. Sử dụng LaTeX cho các biểu thức toán học đóng $...$. Ví dụ $F = m \times a$.
+    4. Sử dụng LaTeX cho các biểu thức toán học.
     5. Mọi Key Point ở Level 3 PHẢI có danh sách "dependencies" chứa các ID hợp lệ của các Key Point khác đã liệt kê trước đó.
     6. "dependencies" chính là hướng mũi tên của đồ thị: [Input IDs] -> [Output ID].
     7. Nếu thông tin độc lập, dependencies là mảng rỗng [].
