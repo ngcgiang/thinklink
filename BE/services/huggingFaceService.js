@@ -61,7 +61,7 @@ class HuggingFaceService {
         {
           "id": "p1",
           "symbol": "Ký hiệu đại lượng (VD: v, m, F, x)",
-          "value": "Giá trị (số hoặc biểu thức của level 1 hoặc 2) hoặc 'Chưa biết' nếu là biến cần tìm hoặc biến level 3",
+          "value": "Giá trị (số hoặc biểu thức của level 1 hoặc 2) hoặc 'Chưa biết' nếu là biến cần tìm, biến level 3, hoặc là công thức",
           "unit": "Đơn vị (VD: m/s, kg, hoặc là đvđ nếu trong toán học không có đơn vị)",
           "level": 1, 2 hoặc 3,
           "source_text": "Trích dẫn chính xác từ đề không tự ý viết hoa (chỉ viết hoa chữ cái đầu câu) (nếu Level 1, level 2), hoặc lý do suy luận (nếu Level 3)",
