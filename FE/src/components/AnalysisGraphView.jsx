@@ -15,67 +15,7 @@ import { GitBranch, ZoomIn } from 'lucide-react';
 import 'reactflow/dist/style.css';
 import NodeDetailsSidebar from './NodeDetailsSidebar';
 import LaTeXFormula from './LaTeXFormula';
-
-/**
- * Helper function to render text that may contain LaTeX formulas
- */
-const renderTextWithLaTeX = (text) => {
-  if (!text) return null;
-  
-  const hasLaTeX = /\$\$[\s\S]+?\$\$|\$[^$]+?\$/.test(text);
-  
-  if (!hasLaTeX) {
-    return text;
-  }
-  
-  const parts = [];
-  let lastIndex = 0;
-  const regex = /\$\$([\s\S]+?)\$\$|\$([^$]+?)\$/g;
-  let match;
-  
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push({
-        type: 'text',
-        content: text.slice(lastIndex, match.index)
-      });
-    }
-    
-    const formula = match[1] || match[2];
-    const isDisplayMode = !!match[1];
-    
-    parts.push({
-      type: 'latex',
-      content: formula,
-      displayMode: isDisplayMode
-    });
-    
-    lastIndex = regex.lastIndex;
-  }
-  
-  if (lastIndex < text.length) {
-    parts.push({
-      type: 'text',
-      content: text.slice(lastIndex)
-    });
-  }
-  
-  return (
-    <>
-      {parts.map((part, idx) => (
-        part.type === 'latex' ? (
-          <LaTeXFormula 
-            key={idx} 
-            formula={part.content} 
-            displayMode={part.displayMode}
-          />
-        ) : (
-          <span key={idx}>{part.content}</span>
-        )
-      ))}
-    </>
-  );
-};
+import renderTextWithLaTeX from '../utils/renderTextWithLaTeX';
 
 // Custom Node Component
 const CustomNode = ({ data, selected }) => {
@@ -148,7 +88,7 @@ const CustomNode = ({ data, selected }) => {
         </div>
         {data.value && (
           <p className="text-xs font-medium text-gray-600">
-            {  renderTextWithLaTeX(data.value)}
+            <LaTeXFormula formula={data.value} displayMode={false} />
           </p>
         )}
       </div>
@@ -443,7 +383,7 @@ const AnalysisGraphView = ({ keyPoints, activeNodeId, onNodeClick }) => {
             <div className="flex-1">
               <h4 className="font-semibold text-sm text-gray-800 mb-1">Suy luận</h4>
               <p className="text-xs text-gray-700 leading-relaxed">
-                Dữ kiện <span className="font-bold">{renderTextWithLaTeX(edgeInfo.target.symbol)}: {edgeInfo.target.value}</span> được suy ra từ <span className="font-bold">{renderTextWithLaTeX(edgeInfo.source.symbol)}: {renderTextWithLaTeX(edgeInfo.source.value)}</span>
+                Dữ kiện <span className="font-bold"><LaTeXFormula formula={edgeInfo.target.symbol} displayMode={false} /></span> được suy ra từ <span className="font-bold"><LaTeXFormula formula={edgeInfo.source.symbol} displayMode={false} /></span>
               </p>
               {edgeInfo.target.related_formula && (
                 <div className="text-xs text-gray-600 mt-2 italic border-t pt-2">

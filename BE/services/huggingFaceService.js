@@ -61,10 +61,10 @@ class HuggingFaceService {
         {
           "id": "p1",
           "symbol": "Ký hiệu đại lượng (VD: v, m, F, x)",
-          "value": "Giá trị (số của level 1 hoặc 2) hoặc 'Chưa biết' nếu là biến cần tìm, biến level 3, hoặc là biểu thức",
-          "unit": "Đơn vị (VD: m/s, kg, hoặc là đvđ nếu trong toán học không có đơn vị)",
+          "value": "Giá trị. Nếu là số giữ nguyên (VD: 5). Nếu là công thức/biến phải có $ (VD: $v_0 \cdot t$, $U_R$)",
+          "unit": "Đơn vị (VD: $m/s$, $kg$) hãy dùng LaTeX nếu cần, nếu không có đơn vị trả về\"đvđ\"",
           "level": 1, 2 hoặc 3,
-          "source_text": "Trích dẫn chính xác từ đề không tự ý viết hoa (chỉ viết hoa chữ cái đầu câu) (nếu Level 1, level 2), hoặc lý do suy luận (nếu Level 3)",
+          "source_text": "Trích dẫn chính xác từ đề không tự ý viết hoa (chỉ viết hoa chữ cái đầu câu) (nếu Level 1, level 2), hoặc lý do suy luận (nếu Level 3) các công thức/biến trong text phải bọc $ (VD: Lực tác dụng $F = m \cdot a$)",
           "related_formula": "Ghi công thức liên quan nếu là Level 3 (VD: F = m*a). Nếu không có thì để null."
           "dependencies": ["Danh sách ID các nút cha (parent nodes) liên quan"
         }
