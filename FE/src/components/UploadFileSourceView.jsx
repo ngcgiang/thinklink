@@ -12,6 +12,8 @@ function UploadFileSourceView() {
   const [error, setError] = useState(null);
   const [documentInfo, setDocumentInfo] = useState(null);
 
+  const BASE_URL = import.meta.env.VITE_REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
+
   // Load thông tin tài liệu hiện tại khi mount
   useEffect(() => {
     fetchDocumentInfo();
@@ -22,7 +24,7 @@ function UploadFileSourceView() {
    */
   const fetchDocumentInfo = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/rag/info');
+      const response = await fetch(`${BASE_URL}/rag/info`);
       const data = await response.json();
       if (data.success) {
         setDocumentInfo(data.data);
@@ -73,7 +75,7 @@ function UploadFileSourceView() {
     formData.append('chunkOverlap', '100');
 
     try {
-      const response = await fetch('http://localhost:3000/api/rag/upload', {
+      const response = await fetch(`${BASE_URL}/rag/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -106,7 +108,7 @@ function UploadFileSourceView() {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/rag/clear', {
+      const response = await fetch(`${BASE_URL}/rag/clear`, {
         method: 'DELETE',
       });
 
