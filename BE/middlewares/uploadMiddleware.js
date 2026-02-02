@@ -1,41 +1,46 @@
 /**
- * Upload Middleware - Xử lý file upload với Multer
+ * Upload Middleware - Xử lý file upload với Multer + Cloudinary
  * 
- * Middleware này sử dụng Multer để:
+ * Middleware này sử dụng Multer + Cloudinary để:
  * 1. Xử lý file PDF upload
  * 2. Validate file type và size
- * 3. Lưu file tạm thời vào thư mục uploads/
+ * 3. Upload trực tiếp lên Cloudinary (không lưu local)
  * 
  * @author ThinkLink Team
  * @date 2026
  */
 
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-// Tạo thư mục uploads nếu chưa tồn tại
-const uploadDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-  console.log('✓ Đã tạo thư mục uploads');
-}
+// Cấu hình Cloudinary từ .env
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+console.log('✓ Cloudinary configured:', process.env.CLOUDINARY_CLOUD_NAME);
 
 /**
- * Cấu hình storage cho Multer
- * - destination: Thư mục lưu file tạm
- * - filename: Tên file được tạo unique với timestamp
+ * Cấu hình Cloudinary storage cho Multer
+ * - folder: Thư mục trên Cloudinary
+ * - resource_type: raw (cho PDF files)
+ * - allowed_formats: Chỉ chấp nhận PDF
  */
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    // Tạo tên file unique: timestamp-originalname
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    const basename = path.basename(file.originalname, ext);
-    cb(null, `${basename}-${uniqueSuffix}${ext}`);
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'thinklink-rag-documents',
+    resource_type: 'raw', // Quan trọng: 'raw' cho PDF files
+    allowed_formats: ['pdf'],
+    public_id: (req, file) => {
+      // Tạo tên file unique
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      const basename = file.originalname.replace('.pdf', '');
+      return `${basename}-${uniqueSuffix}`;
+    },
   },
 });
 

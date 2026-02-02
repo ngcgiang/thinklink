@@ -12,7 +12,7 @@ function UploadFileSourceView() {
   const [error, setError] = useState(null);
   const [documentInfo, setDocumentInfo] = useState(null);
 
-  const BASE_URL = import.meta.env.VITE_REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
+  const BASE_URL = import.meta.env.VITE_REACT_APP_API_BASE_URL || 'http://localhost:3000/api';
 
   // Load thông tin tài liệu hiện tại khi mount
   useEffect(() => {

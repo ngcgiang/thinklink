@@ -146,20 +146,36 @@ Hãy trả lời câu hỏi dựa trên thông tin trên.`;
 
 /**
  * Đọc và parse file PDF thành text
+ * Hỗ trợ cả file path local và Cloudinary URL
  * 
- * @param {string} filePath - Đường dẫn tuyệt đối đến file PDF
+ * @param {string} source - Đường dẫn tuyệt đối đến file PDF hoặc Cloudinary URL
  * @returns {Promise<string>} Nội dung text của PDF
  * @throws {Error} Nếu file không tồn tại hoặc không đọc được
  */
-async function extractTextFromPDF(filePath) {
+async function extractTextFromPDF(source) {
   try {
-    // Kiểm tra file có tồn tại không
-    if (!fs.existsSync(filePath)) {
-      throw new Error(`File không tồn tại: ${filePath}`);
+    let dataBuffer;
+    
+    // Kiểm tra nếu source là URL (Cloudinary)
+    if (source.startsWith('http://') || source.startsWith('https://')) {
+      console.log('📥 Đang download PDF từ Cloudinary...');
+      
+      // Download file từ URL
+      const response = await axios.get(source, {
+        responseType: 'arraybuffer',
+        timeout: 30000, // 30s timeout
+      });
+      
+      dataBuffer = Buffer.from(response.data);
+      console.log('✓ Download thành công:', dataBuffer.length, 'bytes');
+    } else {
+      // Đọc file từ local path
+      if (!fs.existsSync(source)) {
+        throw new Error(`File không tồn tại: ${source}`);
+      }
+      
+      dataBuffer = fs.readFileSync(source);
     }
-
-    // Đọc file PDF dưới dạng buffer
-    const dataBuffer = fs.readFileSync(filePath);
     
     // Parse PDF và lấy text
     const data = await pdf(dataBuffer);
@@ -261,21 +277,22 @@ async function createVectorStore(chunks) {
 
 /**
  * Hàm chính: Xử lý và lưu trữ file PDF vào vector database
+ * Hỗ trợ cả local file path và Cloudinary URL
  * 
- * @param {string} filePath - Đường dẫn tuyệt đối đến file PDF
+ * @param {string} source - Đường dẫn tuyệt đối đến file PDF hoặc Cloudinary URL
  * @param {Object} options - Tùy chọn cấu hình
  * @param {number} options.chunkSize - Kích thước chunk (mặc định: 1000)
  * @param {number} options.chunkOverlap - Độ overlap (mặc định: 100)
  * @returns {Promise<Object>} Kết quả xử lý với thông tin chi tiết
  */
-async function ingestPDF(filePath, options = {}) {
+async function ingestPDF(source, options = {}) {
   try {
     console.log('🚀 Bắt đầu xử lý PDF...');
     
     const { chunkSize = 1000, chunkOverlap = 100 } = options;
 
-    // Bước 1: Đọc text từ PDF
-    const text = await extractTextFromPDF(filePath);
+    // Bước 1: Đọc text từ PDF (hỗ trợ cả URL và file path)
+    const text = await extractTextFromPDF(source);
 
     // Bước 2: Chia text thành chunks
     const chunks = await splitTextIntoChunks(text, chunkSize, chunkOverlap);
@@ -285,7 +302,8 @@ async function ingestPDF(filePath, options = {}) {
 
     // Lưu vector store vào memory
     currentVectorStore = vectorStoreData;
-    currentFileName = path.basename(filePath);
+    // Lấy filename từ source (URL hoặc path)
+    currentFileName = source.includes('/') ? source.split('/').pop() : path.basename(source);
 
     console.log('✅ Xử lý PDF hoàn tất!');
 

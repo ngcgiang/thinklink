@@ -51,9 +51,6 @@ async function uploadPDF(req, res) {
 
     // Kiểm tra file type
     if (req.file.mimetype !== 'application/pdf') {
-      // Xóa file đã upload
-      fs.unlinkSync(req.file.path);
-      
       return res.status(400).json({
         success: false,
         message: 'File không hợp lệ. Chỉ chấp nhận file PDF.',
@@ -61,6 +58,7 @@ async function uploadPDF(req, res) {
     }
 
     console.log('📄 File PDF đã upload:', req.file.originalname);
+    console.log('☁️ Cloudinary URL:', req.file.path);
 
     // Lấy options từ request body
     const chunkSize = parseInt(req.body.chunkSize) || 1000;
@@ -68,7 +66,6 @@ async function uploadPDF(req, res) {
 
     // Validate chunk size và overlap
     if (chunkSize < 100 || chunkSize > 5000) {
-      fs.unlinkSync(req.file.path);
       return res.status(400).json({
         success: false,
         message: 'chunkSize phải trong khoảng 100-5000',
@@ -76,26 +73,20 @@ async function uploadPDF(req, res) {
     }
 
     if (chunkOverlap < 0 || chunkOverlap >= chunkSize) {
-      fs.unlinkSync(req.file.path);
       return res.status(400).json({
         success: false,
         message: 'chunkOverlap phải nhỏ hơn chunkSize và lớn hơn 0',
       });
     }
 
-    // Gọi service để xử lý PDF
+    // Gọi service để xử lý PDF (sử dụng Cloudinary URL)
     const result = await ragService.ingestPDF(req.file.path, {
       chunkSize,
       chunkOverlap,
     });
 
-    // Xóa file tạm sau khi đã xử lý xong
-    try {
-      fs.unlinkSync(req.file.path);
-      console.log('🗑️ Đã xóa file tạm');
-    } catch (err) {
-      console.warn('⚠️ Không thể xóa file tạm:', err.message);
-    }
+    // Không cần xóa file vì đã upload lên Cloudinary
+    console.log('✅ File đã được lưu trên Cloudinary');
 
     // Trả về kết quả
     if (result.success) {
@@ -114,14 +105,7 @@ async function uploadPDF(req, res) {
   } catch (error) {
     console.error('❌ Lỗi trong uploadPDF controller:', error);
 
-    // Xóa file nếu có lỗi
-    if (req.file && req.file.path) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (err) {
-        console.warn('⚠️ Không thể xóa file tạm khi lỗi:', err.message);
-      }
-    }
+    // Không cần xóa file vì đã upload lên Cloudinary
 
     return res.status(500).json({
       success: false,
