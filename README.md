@@ -9,6 +9,8 @@
 - **🎯 Làm nổi bật thông tin quan trọng**: Tự động highlight các từ khóa và dữ liệu trong đề bài
 - **🧮 Hỗ trợ công thức LaTeX**: Render các công thức toán học và vật lý một cách chuyên nghiệp
 - **📐 Đồ thị tương tác**: Sử dụng React Flow để tạo đồ thị cascading với khả năng zoom, drag và explore
+- **📚 RAG (Retrieval-Augmented Generation)**: Upload PDF và đặt câu hỏi về nội dung tài liệu sử dụng AI
+- **🎓 Tích hợp tài liệu học tập**: Hệ thống tự động tham khảo tài liệu đã upload khi phân tích đề bài
 
 ## 🏗️ Kiến trúc dự án
 
@@ -123,6 +125,8 @@ Frontend sẽ chạy tại: `http://localhost:5173`
 
 ## 🎮 Cách sử dụng
 
+### Phân tích đề bài
+
 1. Mở trình duyệt và truy cập `http://localhost:5173`
 2. Nhập thông tin:
    - **Lớp**: Chọn lớp từ 8-12
@@ -135,6 +139,17 @@ Frontend sẽ chạy tại: `http://localhost:5173`
    - **Các điểm chính**: Thông tin quan trọng được trích xuất
    - **Ẩn số**: Các đại lượng cần tìm
    - **Đồ thị trực quan**: Biểu diễn quan hệ giữa các thành phần
+
+### Upload tài liệu tham khảo (Admin)
+
+1. Truy cập `http://localhost:5173/admin/upload`
+2. Chọn file PDF tài liệu học tập (sách giáo khoa, bài giảng...)
+3. Nhấn **"Upload và Xử lý"**
+4. Hệ thống sẽ tự động:
+   - Đọc và xử lý nội dung PDF
+   - Tạo vector store để tìm kiếm
+   - Tích hợp vào quá trình phân tích đề bài
+5. Khi phân tích đề bài, hệ thống sẽ tự động tham khảo tài liệu nếu có thông tin liên quan
 
 ## 📁 API Endpoints
 

@@ -1,4 +1,5 @@
 const axios = require('axios');
+const ragService = require('./ragService');
 
 /**
  * Hugging Face Service - Xử lý tương tác với Hugging Face Inference API
@@ -113,6 +114,67 @@ class HuggingFaceService {
       Trả về JSON object hợp lệ.`;
   }
 
+  /**
+   * Xây dựng user prompt với thông tin từ tài liệu (nếu có)
+   */
+  async constructUserPromptWithContext(classLevel, subject, currentTopic, problemText) {
+    // Kiểm tra xem có tài liệu PDF nào đã được upload không
+    const vectorStoreInfo = ragService.getVectorStoreInfo();
+    
+    if (!vectorStoreInfo.hasVectorStore) {
+      // Không có tài liệu, dùng prompt thông thường
+      return this.constructUserPrompt(classLevel, subject, currentTopic, problemText);
+    }
+
+    try {
+      // Có tài liệu, thử tìm thông tin liên quan
+      console.log('📚 Đang tìm kiếm thông tin liên quan trong tài liệu...');
+      
+      // Tạo query để tìm kiếm trong tài liệu
+      const searchQuery = `${subject} ${currentTopic} ${problemText}`;
+      const ragResult = await ragService.askQuestion(searchQuery, { k: 3 });
+
+      if (ragResult.success && ragResult.sources && ragResult.sources.length > 0) {
+        // Có thông tin liên quan từ tài liệu
+        const contextText = ragResult.sources
+          .map(source => source.content)
+          .join('\n\n');
+
+        console.log(`✓ Tìm thấy ${ragResult.sources.length} đoạn liên quan trong tài liệu`);
+
+        return `PHÂN TÍCH ĐỀ BÀI SAU:
+      - Cấp độ: Lớp ${classLevel} (Chương trình Giáo dục Việt Nam)
+      - Môn: ${subject}
+      - Chủ đề/Chương: ${currentTopic} (Rất quan trọng để chọn công thức phù hợp)
+
+      NỘI DUNG ĐỀ:
+      "${problemText}"
+
+      THÔNG TIN THAM KHẢO TỪ TÀI LIỆU (${vectorStoreInfo.fileName}):
+      ${contextText}
+      
+      LƯU Ý: Thông tin tham khảo từ tài liệu chỉ để hỗ trợ phân tích. Vẫn phải phân tích đề bài theo đúng yêu cầu và không được thêm thông tin không có trong đề.
+
+      YÊU CẦU:
+      1. Trích xuất Level 1, Level 2.
+      2. Xác định Level 3 (các đại lượng ẩn có thể tính được từ dữ liệu đã có).
+      3. Kiểm tra tính nhất quán của đơn vị (Unit consistency).
+      4. Liệt kê các công thức SGK phù hợp với chủ đề "${currentTopic}".
+      5. Nếu thông tin từ tài liệu có liên quan đến công thức hoặc khái niệm trong đề, có thể tham khảo nhưng không được tự ý thêm dữ liệu.
+      
+      Trả về JSON object hợp lệ.`;
+      } else {
+        // Không tìm thấy thông tin liên quan
+        console.log('⚠️ Không tìm thấy thông tin liên quan trong tài liệu');
+        return this.constructUserPrompt(classLevel, subject, currentTopic, problemText);
+      }
+    } catch (error) {
+      // Lỗi khi tìm kiếm tài liệu, fallback về prompt thông thường
+      console.warn('⚠️ Lỗi khi tìm kiếm tài liệu:', error.message);
+      return this.constructUserPrompt(classLevel, subject, currentTopic, problemText);
+    }
+  }
+
 
   /**
    * Gọi Hugging Face API để phân tích đề bài
@@ -124,9 +186,9 @@ class HuggingFaceService {
         throw new Error('HUGGINGFACE_API_KEY không được cấu hình trong file .env');
       }
 
-      // Xây dựng prompt
+      // Xây dựng prompt (có thể có context từ tài liệu)
       const systemPrompt = this.constructSystemPrompt();
-      const userPrompt = this.constructUserPrompt(classLevel, subject, currentTopic, problemText);
+      const userPrompt = await this.constructUserPromptWithContext(classLevel, subject, currentTopic, problemText);
 
       // Tạo messages cho chat model
       const messages = [
